@@ -1,0 +1,159 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+enum UserStatus {
+  ACTIVE
+  DISABLED
+}
+
+enum ContractType {
+  CDI
+  CDD
+  Freelance
+  Contract
+}
+
+enum WorkMode {
+  Remote
+  Hybrid
+  On_site
+}
+
+enum ExperienceLevel {
+  Junior
+  Mid
+  Senior
+  Lead
+}
+
+enum OpportunitySource {
+  LinkedIn
+  Indeed
+  Company
+  FreelancePlatform
+  Referral
+  Other
+}
+
+enum SkillCategory {
+  Frontend
+  Backend
+  Database
+  DevOps
+  Cloud
+  Mobile
+  Other
+}
+
+enum SkillLevel {
+  Beginner
+  Intermediate
+  Advanced
+  Expert
+}
+
+enum ApplicationStatus {
+  SAVED
+  APPLIED
+  INTERVIEW
+  OFFER
+  REJECTED
+}
+
+model User {
+  id               String           @id @default(cuid())
+  firstName        String
+  lastName         String
+  email            String           @unique
+  password         String
+  role             Role             @default(USER)
+  status           UserStatus       @default(ACTIVE)
+  title            String           @default("")
+  bio              String           @default("")
+  experienceLevel  ExperienceLevel  @default(Junior)
+  location         String           @default("")
+  available        Boolean          @default(true)
+  preferredContract ContractType[]
+  preferredWorkMode WorkMode[]
+  portfolio        String?
+  github           String?
+  linkedin         String?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  skills        Skill[]
+  opportunities Opportunity[]
+  applications  Application[]
+}
+
+model Skill {
+  id       String       @id @default(cuid())
+  name     String
+  category SkillCategory
+  level    SkillLevel   @default(Intermediate)
+  userId   String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@unique([userId, name])
+}
+
+model Opportunity {
+  id           String            @id @default(cuid())
+  title        String
+  company      String
+  description  String            @default("")
+  url          String            @default("")
+  contractType ContractType
+  location     String            @default("")
+  workMode     WorkMode          @default(Remote)
+  source       OpportunitySource @default(Other)
+  ownerId      String
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  owner         User               @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  requiredSkills OpportunitySkill[]
+  applications  Application[]
+
+  @@index([ownerId])
+}
+
+model OpportunitySkill {
+  id            String         @id @default(cuid())
+  opportunityId String
+  name          String
+  category      SkillCategory?
+
+  opportunity Opportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+
+  @@index([opportunityId])
+}
+
+model Application {
+  id            String            @id @default(cuid())
+  opportunityId String
+  userId        String
+  status        ApplicationStatus @default(SAVED)
+  note          String            @default("")
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  opportunity Opportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([opportunityId, userId])
+  @@index([userId])
+}
