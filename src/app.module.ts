@@ -6,9 +6,11 @@ import { OpportunitiesModule } from './modules/opportunities/opportunities.modul
 import { ApplicationsModule } from './modules/applications/applications.module';
 import { MatchingModule } from './modules/matching/matching.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
+import { MockDatabaseModule } from './infrastructure/mock/mock-database.module';
 
 @Module({
   imports: [
+    MockDatabaseModule,
     AuthModule,
     ProfileModule,
     OpportunitiesModule,
